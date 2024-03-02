@@ -1,0 +1,69 @@
+import colorama
+import requests
+from bs4 import BeautifulSoup
+from colorama import Fore, Style
+
+# 获取HTML
+def GetHTMLText(url):
+    try:
+        cookies = {
+            'SUBP': '0033WrSXqPxfM72 - Ws9jqgMF55529P9D',
+            'ULV': '1684158004692:3:2:2:881667697027.8748.1684158004690:1684132886310',
+            'SINAGLOBAL': '2194849471079.1987.1668924959229',
+            'Apache': '881667697027.8748.1684158004690',
+            'SUB': '_2AkMUQgSDf8NxqwJRmPAVzG3laIV-wgnEieKiHvVYJRMxHRl-yT9jqlZetRB6P8IqbNCljWwEXNZNR565QCcw4Oj8Itm5',
+            'UOR': 'yunpan.cloud,vdisk.weibo.com,yunpan.cloud'}
+        r = requests.get(url, timeout=30, cookies=cookies)
+        r.raise_for_status()
+        r.encoding = 'utf-8'
+        return r.text
+    except:
+        print("异常")
+        return ""
+
+
+def Data(soup):
+    # 打印标题
+    title = soup.find('title')
+    print('\t%s\n' % title.string, end='')
+    # 榜单
+    data = soup.find_all('tr', class_="")
+    n = 1  # 排名序号
+    for tr in data:
+        td = tr.find('td', class_="td-01")  # 置顶内容
+        td1 = tr.find('td', class_="td-01 ranktop")  # 广告
+        td2 = tr.find('td', class_="td-02")
+        i = td.find('i', class_="icon-top")
+        # 遇到广告就跳过
+        if td1 is not None:
+            continue
+        # 处理置顶内容
+        elif i is not None:
+            a = td2.find('a')
+            # print("\033[32mTop %s\033[0m" % a.string)
+            print(Fore.GREEN+"%s" % a.string)
+
+        else:
+            span = td2.find('span')  # 热搜标签
+            a = td2.find('a')  # 热搜内容
+            if n < 10:
+                # print("\033[33m0\033[0m", end='')
+                print(Fore.YELLOW + "0", end='')
+            # print("\033[34m%d\033[0m"%n)
+            print(Fore.YELLOW + "%d" % n, end='')
+            # print("\033[33m%d  \033[0m\033[36m%s \033[0m\033[37m%s\033[0m" % (n, a.string, span.string))
+            print(Fore.CYAN + "%s" % a.string, end='')
+            print(Fore.RESET + "%s" % span.string)
+            n = n + 1
+
+
+# 发起HTTP请求获取页面内容
+def main():
+    url = 'https://s.weibo.com/top/summary'
+    # url = 'https://s.weibo.com/top/summary?cate=sport'
+    html = GetHTMLText(url)
+    soup = BeautifulSoup(html, "html.parser")
+    Data(soup)
+
+
+main()
